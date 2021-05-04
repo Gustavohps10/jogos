@@ -1,5 +1,5 @@
 window.onload = function() {
-    var canvas, ctx, altura, largura, frames = 0;
+    var canvas, ctx, canvasAltura, canvasLargura, frames = 0, pontos = 0;
 
     //IMAGES
     const marioSprites = new Image();
@@ -27,10 +27,7 @@ window.onload = function() {
     const musicaFundo = new Audio()
     musicaFundo.src = 'audios/overworld_bgm.mp3';
 
-    
-
-
-    ////////
+    //CANVAS CONFIG
 
     telaAltura = window.innerHeigth;
     telaLargura = window.innerWidth;
@@ -47,6 +44,9 @@ window.onload = function() {
 
     ctx = canvas.getContext("2d");
     document.body.appendChild(canvas);
+
+
+    //JOGO
     const fundo = {
         desenha(){
             ctx.fillStyle = '#50beff'
@@ -93,7 +93,7 @@ window.onload = function() {
         y: 150,
         gravidade: 0.35,
         velocidade: 0,
-        forcaPulo: 8,
+        forcaPulo: 9,
         pula(){
             mario.velocidade = - mario.forcaPulo;
             marioVoa.play();
@@ -107,7 +107,13 @@ window.onload = function() {
                 return;
             }  
             mario.velocidade +=  this.gravidade;
-            mario.y += mario.velocidade; 
+            mario.y += mario.velocidade;
+
+            if(mario.velocidade < 0){
+                this.frameAtual = 1;
+            }else{
+                this.frameAtual = 0;
+            }
         },
         movimentos:[
             {spriteX: 0, spriteY: 0},
@@ -115,11 +121,7 @@ window.onload = function() {
             {spriteX: 60, spriteY: 0}
         ],
         frameAtual: 0,
-        atualizaFrameAtual(){
-
-        },
         desenha(){
-            this.atualizaFrameAtual();
             const {spriteX, spriteY} = this.movimentos[this.frameAtual];
             ctx.drawImage(marioSprites,
             spriteX, spriteY,
@@ -216,6 +218,9 @@ window.onload = function() {
                 if(par.x + canos.largura <0){
                      canos.pares.shift();
                 }
+                if(mario.x == par.x+canos.largura){
+                    placar.pontuacao +=1;
+                }
             });
             
         }
@@ -230,6 +235,16 @@ window.onload = function() {
         y: 90,
         desenha(){
             ctx.drawImage(imgInicio, this.spriteX, this.spriteY, this.largura, this.altura, this.x, this.y, 400, 200);
+        }
+    }
+
+    const placar = {
+        pontuacao: 0,
+        desenha(){
+            ctx.font = '35px serif';
+            ctx.textAlign = 'right'
+            ctx.fillStyle = 'white'
+            ctx.fillText(`PONTOS: ${placar.pontuacao}`, canvasLargura-35, 40)
         }
     }
 
@@ -260,6 +275,7 @@ window.onload = function() {
             fundo.desenha();
             mario.desenha();
             canos.desenha();
+            placar.desenha();
             chao.desenha();
         },
         click(){
