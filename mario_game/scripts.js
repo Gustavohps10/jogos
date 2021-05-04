@@ -143,16 +143,16 @@ window.onload = function() {
         espaco: 80,
         desenha(){
             this.pares.forEach(function(par){
-                const yRamdom = par.y;
-                const espacamentoCanos = 120;
+                const yRandom = par.y;
+                const espacamentoCanos = 150;
                 const tamanhoCano = 12;
                 const alturaCanoCeu = (tamanhoCano+1)*canos.altura;
                 const canoCeuX = par.x;
                 //[Cano do Céu]
                 for (let i = 0; i < tamanhoCano; i++) {
-                    ctx.drawImage(canoSprites, 70, 36, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRamdom, canos.largura, canos.altura)
+                    ctx.drawImage(canoSprites, 70, 36, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRandom, canos.largura, canos.altura)
                 }
-                ctx.drawImage(canoSprites, 70, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRamdom, canos.largura, canos.altura);
+                ctx.drawImage(canoSprites, 70, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRandom, canos.largura, canos.altura);
 
                 //blocos de pedra
                 ctx.drawImage(blocoSprites, 0, 34, 16, 16, canoCeuX + 16, 0, 16, 16);
@@ -164,11 +164,36 @@ window.onload = function() {
                 const canoChaoY = 32;
 
                 for (let i = 0; i <= tamanhoCano; i++){
-                    ctx.drawImage(canoSprites, 70, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRamdom, 32, 32);
+                    ctx.drawImage(canoSprites, 70, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
                 }
-                ctx.drawImage(canoSprites, 70, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRamdom, 32, 32);
-               
+                ctx.drawImage(canoSprites, 70, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
+
+                par.canoCeu = {
+                    x: canoCeuX,
+                    y: alturaCanoCeu + yRandom,
+                }
+                par.canoChao = {
+                    x: canoCeuX,
+                    y: alturaCanoCeu +espacamentoCanos + yRandom
+                }
             });
+        },
+        
+        temColisao(par){
+            const cabecaMario = mario.y;
+            const peMario = mario.y + mario.altura
+            
+            if(mario.x >= par.x && mario.x <= par.x+canos.largura ){
+                if(cabecaMario <= par.canoCeu.y){
+                    console.log('voce bateu no cano de cima')
+                    return true;
+                }
+                if(peMario >=par.canoChao.y){
+                    console.log('voce bateu no cano de baixo')
+                    return true;
+                }
+            }
+            return false;
         },
         pares: [],
         atualiza(){
@@ -176,16 +201,21 @@ window.onload = function() {
             if(passou100Frames){
                 canos.pares.push({
                     x: canvasLargura,
-                    y: -Math.floor(Math.random() * (350 + 1) + 2)//-150*(Math.random() + 1),
+                    y: -Math.floor(Math.random() * (350 + 1) + 2)
                 });
+                
             }
 
             canos.pares.forEach(function(par){
                 par.x -= 3;
 
-                //if(par.x + canos.largura <0){
-                //     canos.pares.shift();
-                //}
+                if(canos.temColisao(par)){
+                    mudaTela(Telas.INICIO);
+                }
+
+                if(par.x + canos.largura <0){
+                     canos.pares.shift();
+                }
             });
             
         }
