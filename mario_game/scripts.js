@@ -11,11 +11,17 @@ window.onload = function() {
     const imgInicio = new Image();
     imgInicio.src = 'images/logo.png';
 
+    const imgFundo = new Image();
+    imgFundo.src = 'images/fundo.png'; 
+
     const blocoSprites = new Image();
     blocoSprites.src = 'images/bloco.png';
 
     const canoSprites = new Image();
     canoSprites.src = 'images/cano.png';
+
+    const imgGameOver = new Image();
+    imgGameOver.src = 'images/gameOver.png'
 
     //AUDIOS
     const marioVoa = new Audio()
@@ -48,9 +54,22 @@ window.onload = function() {
 
     //JOGO
     const fundo = {
+        altura: 436,
+        largura: 512,
+        x: 0,
         desenha(){
-            ctx.fillStyle = '#50beff'
+            console.log(this.y);
+            ctx.fillStyle = '#f8e1b2'
             ctx.fillRect(0, 0, canvasLargura, canvasAltura);
+            ctx.drawImage(imgFundo, 2, 438, this.largura, this.altura, this.x, canvasAltura-this.altura, this.largura, this.altura);
+            ctx.drawImage(imgFundo, 2, 438, this.largura, this.altura, this.x+this.largura, canvasAltura-this.altura, this.largura, this.altura);
+            ctx.drawImage(imgFundo, 2, 438, this.largura, this.altura, this.x+this.largura*2, canvasAltura-this.altura, this.largura, this.altura);
+        },
+        atualiza(){
+            const movimentoFundo = 1;
+            const repeteFundo = fundo.largura; 
+            const movimento = fundo.x - movimentoFundo;
+            fundo.x = movimento % repeteFundo;
         }
     }
     
@@ -90,10 +109,15 @@ window.onload = function() {
         largura: 28,
         altura: 40,
         x: 39,
-        y: 150,
+        y: 100,
         gravidade: 0.35,
         velocidade: 0,
         forcaPulo: 9,
+        morre(){
+            musicaFundo.pause();
+            marioMorre.play();
+            mudaTela(Telas.PERDEU);
+        },
         pula(){
             mario.velocidade = - mario.forcaPulo;
             marioVoa.play();
@@ -101,9 +125,7 @@ window.onload = function() {
         },
         atualiza(){
             if(fazColisao(mario, chao)){
-                mudaTela(Telas.INICIO);
-                musicaFundo.pause();
-                marioMorre.play();
+                mario.morre();
                 return;
             }  
             mario.velocidade +=  this.gravidade;
@@ -146,15 +168,15 @@ window.onload = function() {
         desenha(){
             this.pares.forEach(function(par){
                 const yRandom = par.y;
-                const espacamentoCanos = 150;
+                const espacamentoCanos = 137;
                 const tamanhoCano = 12;
                 const alturaCanoCeu = (tamanhoCano+1)*canos.altura;
                 const canoCeuX = par.x;
                 //[Cano do Céu]
                 for (let i = 0; i < tamanhoCano; i++) {
-                    ctx.drawImage(canoSprites, 70, 36, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRandom, canos.largura, canos.altura)
+                    ctx.drawImage(canoSprites, 70+34, 36, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRandom, canos.largura, canos.altura)
                 }
-                ctx.drawImage(canoSprites, 70, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRandom, canos.largura, canos.altura);
+                ctx.drawImage(canoSprites, 70+34, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRandom, canos.largura, canos.altura);
 
                 //blocos de pedra
                 ctx.drawImage(blocoSprites, 0, 34, 16, 16, canoCeuX + 16, 0, 16, 16);
@@ -166,9 +188,9 @@ window.onload = function() {
                 const canoChaoY = 32;
 
                 for (let i = 0; i <= tamanhoCano; i++){
-                    ctx.drawImage(canoSprites, 70, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
+                    ctx.drawImage(canoSprites, 70+34, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
                 }
-                ctx.drawImage(canoSprites, 70, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
+                ctx.drawImage(canoSprites, 70+34, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
 
                 par.canoCeu = {
                     x: canoCeuX,
@@ -211,15 +233,16 @@ window.onload = function() {
             canos.pares.forEach(function(par){
                 par.x -= 3;
 
-                if(canos.temColisao(par)){
-                    mudaTela(Telas.INICIO);
-                }
-
                 if(par.x + canos.largura <0){
                      canos.pares.shift();
                 }
                 if(mario.x == par.x+canos.largura){
                     placar.pontuacao +=1;
+                }
+
+                if(canos.temColisao(par)){
+                    mario.morre();
+                    mudaTela(Telas.PERDEU);
                 }
             });
             
@@ -231,8 +254,8 @@ window.onload = function() {
         spriteY: 0,
         largura: 600,
         altura: 400,
-        x: 40,
-        y: 90,
+        x: 200,
+        y: 50,
         desenha(){
             ctx.drawImage(imgInicio, this.spriteX, this.spriteY, this.largura, this.altura, this.x, this.y, 400, 200);
         }
@@ -243,8 +266,18 @@ window.onload = function() {
         desenha(){
             ctx.font = '35px serif';
             ctx.textAlign = 'right'
-            ctx.fillStyle = 'white'
+            ctx.fillStyle = '#000'
             ctx.fillText(`PONTOS: ${placar.pontuacao}`, canvasLargura-35, 40)
+        }
+    }
+
+    const telaFimJogo = {
+        desenha(){
+            ctx.drawImage(imgGameOver, 0, 0, 900, 400, 150, 150, 900, 400);
+            ctx.font = '35px serif';
+            ctx.textAlign = 'left'
+            ctx.fillStyle = 'white';
+            ctx.fillText(`RECORD: #     PONTOS: ${placar.pontuacao}`, 210, 465)
         }
     }
 
@@ -258,15 +291,19 @@ window.onload = function() {
             desenha(){
                 fundo.desenha();
                 logo.desenha();
+                
                 mario.desenha();
-                canos.desenha();
-                chao.desenha();    
+                chao.desenha(); 
             },
             click(){
                 musicaFundo.play();
+                musicaFundo.currentTime = 0;
                 mudaTela(Telas.JOGO);  
             },
-            atualiza(){},
+            atualiza(){
+                mario.y = 100;
+                mario.velocidade = 0;
+            },
         }
     }
 
@@ -282,10 +319,30 @@ window.onload = function() {
             mario.pula()
         },
         atualiza(){
+            fundo.atualiza();
             mario.atualiza();
             canos.atualiza();
             chao.atualiza();
         },
+    }
+
+    Telas.PERDEU = {
+        desenha(){
+            fundo.desenha();
+            mario.desenha();
+            canos.desenha();
+            placar.desenha();
+            chao.desenha();
+            telaFimJogo.desenha();
+        },
+        click(){
+            canos.pares = [];
+            placar.pontuacao = 0;
+            marioMorre.pause();
+            marioMorre.currentTime = 0;
+            mudaTela(Telas.INICIO);
+        },
+        atualiza(){}
     }
 
     function loop() {
