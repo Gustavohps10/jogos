@@ -47,6 +47,7 @@ window.onload = function() {
     canvas.width = canvasLargura;
     canvas.height = canvasAltura;
     canvas.style.border = "1px solid #000";
+    canvas.style.maxWidth = "90%"
 
     ctx = canvas.getContext("2d");
     document.body.appendChild(canvas);
@@ -58,7 +59,6 @@ window.onload = function() {
         largura: 512,
         x: 0,
         desenha(){
-            console.log(this.y);
             ctx.fillStyle = '#f8e1b2'
             ctx.fillRect(0, 0, canvasLargura, canvasAltura);
             ctx.drawImage(imgFundo, 2, 438, this.largura, this.altura, this.x, canvasAltura-this.altura, this.largura, this.altura);
@@ -121,7 +121,6 @@ window.onload = function() {
         pula(){
             mario.velocidade = - mario.forcaPulo;
             marioVoa.play();
-            
         },
         atualiza(){
             if(fazColisao(mario, chao)){
@@ -156,27 +155,29 @@ window.onload = function() {
     const canos = {
         largura: 32,
         altura: 32,
-        chao:{
-            spriteX: 0,
-            spriteY: 34,
-        },
-        ceu:{
-            spriteX: 0,
-            spriteY: 34,
-        },
-        espaco: 80,
+        cores:[
+            //{spriteX: 2, spriteY: 36},  //laranja claro
+            //{spriteX: 36, spriteY: 36}, //branco
+            {spriteX: 70, spriteY: 36}, //verde
+            {spriteX: 104, spriteY: 36},  //amarelo
+            {spriteX: 138, spriteY: 36},  //azul
+            //{spriteX: 206, spriteY: 36},  //laranja escuro
+            //{spriteX: 240, spriteY: 36}, //preto
+            //{spriteX: 274, spriteY: 36}, //roxo
+        ],
         desenha(){
             this.pares.forEach(function(par){
                 const yRandom = par.y;
-                const espacamentoCanos = 137;
+                const espacamentoCanos = 120;
                 const tamanhoCano = 12;
                 const alturaCanoCeu = (tamanhoCano+1)*canos.altura;
                 const canoCeuX = par.x;
+                const {spriteX, spriteY} = canos.cores[par.cor];
                 //[Cano do Céu]
                 for (let i = 0; i < tamanhoCano; i++) {
-                    ctx.drawImage(canoSprites, 70+34, 36, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRandom, canos.largura, canos.altura)
+                    ctx.drawImage(canoSprites, spriteX, spriteY, canos.largura, canos.altura, canoCeuX, canos.altura*i+yRandom, canos.largura, canos.altura)
                 }
-                ctx.drawImage(canoSprites, 70+34, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRandom, canos.largura, canos.altura);
+                ctx.drawImage(canoSprites, spriteX, 70, canos.largura, canos.altura, canoCeuX, canos.altura*tamanhoCano+yRandom, canos.largura, canos.altura);
 
                 //blocos de pedra
                 ctx.drawImage(blocoSprites, 0, 34, 16, 16, canoCeuX + 16, 0, 16, 16);
@@ -188,9 +189,9 @@ window.onload = function() {
                 const canoChaoY = 32;
 
                 for (let i = 0; i <= tamanhoCano; i++){
-                    ctx.drawImage(canoSprites, 70+34, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
+                    ctx.drawImage(canoSprites, spriteX, 36, 32, 32, canoChaoX, canos.altura*i+alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
                 }
-                ctx.drawImage(canoSprites, 70+34, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
+                ctx.drawImage(canoSprites, spriteX, 2, 32, 32, canoChaoX, alturaCanoCeu+espacamentoCanos+yRandom, 32, 32);
 
                 par.canoCeu = {
                     x: canoCeuX,
@@ -225,7 +226,8 @@ window.onload = function() {
             if(passou100Frames){
                 canos.pares.push({
                     x: canvasLargura,
-                    y: -Math.floor(Math.random() * (350 + 1) + 2)
+                    y: -Math.floor(Math.random() * (350 + 1) + 2),
+                    cor: Math.floor(Math.random() * canos.cores.length)
                 });
                 
             }
@@ -233,8 +235,8 @@ window.onload = function() {
             canos.pares.forEach(function(par){
                 par.x -= 3;
 
-                if(par.x + canos.largura <0){
-                     canos.pares.shift();
+                if(par.x + canos.largura < 0){
+                    //canos.pares.shift();
                 }
                 if(mario.x == par.x+canos.largura){
                     placar.pontuacao +=1;
